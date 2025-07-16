@@ -1,0 +1,133 @@
+--- # Create a Virtual Machine on Azure Using Ansible
+
+- name: Provision Azure Infrastructure and VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    vm_name: "Test-Ansible"
+    vm_size: "Standard_B1s"
+    vm_image:
+      publisher: "RedHat"
+      offer: "RHEL"
+      sku: "9-LVM"
+      version: "latest"
+    vm_username: "testansible"
+    vm_password: "root@123" # Consider using SSH keys instead of passwords for VMs
+    resource_group_name: "test-ansible"
+    resource_group_region: "centralindia"
+
+    vnet_name: "test-ansible-vnet"
+    subnet_name: "test-ansible-subnet"
+    public_ip_name: "{{ vm_name }}-public-ip"
+    nsg_name: "{{ vm_name }}-nsg"
+    nic_name: "{{ vm_name }}-nic"
+
+
+  tasks:
+
+    - name: Create a Resource Group
+      azure.azcollection.azure_rm_resourcegroup:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        name: "{{ resource_group_name }}"
+        location: "{{ resource_group_region }}"
+      register: rg
+
+    - name: Create a Virtual Network
+      azure.azcollection.azure_rm_virtualnetwork:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ vnet_name }}"
+        address_prefixes: "10.0.0.0/16"
+      register: vnet
+
+    - name: Create a Subnet
+      azure.azcollection.azure_rm_subnet:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        resource_group: "{{ resource_group_name }}"
+        virtual_network_name: "{{ vnet_name }}"
+        name: "{{ subnet_name }}"
+        address_prefix: "10.0.1.0/24"
+      register: subnet
+
+    - name: Create a Public IP Address
+      azure.azcollection.azure_rm_publicipaddress:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        resource_group: "{{ resource_group_name }}"
+        allocation_method: Static
+        name: "{{ public_ip_name }}"
+      register: public_ip
+
+    - name: Create a Network Security Group and allow SSH
+      azure.azcollection.azure_rm_securitygroup:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ nsg_name }}"
+        rules:
+          - name: AllowSSH
+            protocol: Tcp
+            direction: Inbound
+            priority: 1000
+            access: Allow
+            source_address_prefix: "*"
+            source_port_range: "*"
+            destination_port_range: "22"
+            destination_address_prefix: "*"
+      register: nsg
+
+    - name: Create a Network Interface Card (NIC)
+      azure.azcollection.azure_rm_networkinterface:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ nic_name }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet_name: "{{ subnet_name }}"
+        # --- CORRECTED BLOCK START ---
+        ip_configurations:
+          - name: ipconfig1 # This is the name of the IP configuration itself
+            public_ip_address_name: "{{ public_ip_name }}" # This links to the public IP created earlier
+        # --- CORRECTED BLOCK END ---
+        security_group: "{{ nsg_name }}"
+      register: nic
+
+    - name: Create the Virtual Machine
+      azure.azcollection.azure_rm_virtualmachine:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ vm_name }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: "{{ vm_username }}"
+        admin_password: "{{ vm_password }}"
+        image: "{{ vm_image }}"
+        os_disk_name: "{{ vm_name }}-os-disk"
+        os_disk_caching: ReadWrite
+        network_interface_names:
+          - "{{ nic_name }}"
+        ssh_password_enabled: true
+      register: vm
+
+    - name: Print public IP of the created VM
+      debug:
+        msg: "VM Public IP is {{ public_ip.state.ip_address }}"
