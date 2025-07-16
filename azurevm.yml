@@ -1,4 +1,4 @@
---- # Create a Virtual Machine on Azure Using Ansible
+--- # Provision Azure Infrastructure and VM
 
 - name: Provision Azure Infrastructure and VM
   hosts: localhost
@@ -6,14 +6,14 @@
   gather_facts: false
 
   vars:
-    vm_name: "mysql"
+    vm_name: "mysql" 
     vm_size: "Standard_B1s"
     vm_image:
       publisher: "RedHat"
       offer: "RHEL"
       sku: "9-LVM"
       version: "latest"
-    vm_username: "mysql"
+    vm_username: "mysql" 
     resource_group_name: "exl"
     resource_group_region: "centralindia"
 
@@ -23,16 +23,33 @@
     nsg_name: "{{ vm_name }}-nsg"
     nic_name: "{{ vm_name }}-nic"
 
+    # Azure credentials injected by AWX
+    client_id: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
+    secret: "{{ lookup('env', 'AZURE_SECRET') }}"
+    subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+    tenant: "{{ lookup('env', 'AZURE_TENANT_ID') }}"
+
+    # VM admin password injected by AWX
+    vm_password: "{{ lookup('env', 'VM_PASSWORD') }}"
+
   tasks:
 
     - name: Create a Resource Group
       azure.azcollection.azure_rm_resourcegroup:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
         name: "{{ resource_group_name }}"
         location: "{{ resource_group_region }}"
       register: rg
 
     - name: Create a Virtual Network
       azure.azcollection.azure_rm_virtualnetwork:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
         resource_group: "{{ resource_group_name }}"
         name: "{{ vnet_name }}"
         address_prefixes: "10.0.0.0/16"
@@ -40,6 +57,10 @@
 
     - name: Create a Subnet
       azure.azcollection.azure_rm_subnet:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
         resource_group: "{{ resource_group_name }}"
         virtual_network_name: "{{ vnet_name }}"
         name: "{{ subnet_name }}"
@@ -48,6 +69,10 @@
 
     - name: Create a Public IP Address
       azure.azcollection.azure_rm_publicipaddress:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
         resource_group: "{{ resource_group_name }}"
         allocation_method: Static
         name: "{{ public_ip_name }}"
@@ -55,6 +80,10 @@
 
     - name: Create a Network Security Group and allow SSH
       azure.azcollection.azure_rm_securitygroup:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
         resource_group: "{{ resource_group_name }}"
         name: "{{ nsg_name }}"
         rules:
@@ -71,6 +100,10 @@
 
     - name: Create a Network Interface Card (NIC)
       azure.azcollection.azure_rm_networkinterface:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
         resource_group: "{{ resource_group_name }}"
         name: "{{ nic_name }}"
         virtual_network: "{{ vnet_name }}"
@@ -83,11 +116,15 @@
 
     - name: Create the Virtual Machine
       azure.azcollection.azure_rm_virtualmachine:
+        subscription_id: "{{ subscription_id }}"
+        tenant: "{{ tenant }}"
+        client_id: "{{ client_id }}"
+        secret: "{{ secret }}"
         resource_group: "{{ resource_group_name }}"
         name: "{{ vm_name }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ vm_username }}"
-        admin_password: "{{ lookup('env', 'VM_PASSWORD') }}"
+        admin_password: "{{ vm_password }}"
         image: "{{ vm_image }}"
         os_disk_name: "{{ vm_name }}-os-disk"
         os_disk_caching: ReadWrite
