@@ -4,30 +4,50 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  collections: 
-    - azure.azcollection
+
   vars:
-    vm_name: "Test-Ansible"
+    vm_name: "mysql"
     vm_size: "Standard_B1s"
     vm_image:
       publisher: "RedHat"
       offer: "RHEL"
       sku: "9-LVM"
       version: "latest"
-    vm_username: "testansible"
-    vm_password: "root@123" # Consider using SSH keys instead of passwords for VMs
-    resource_group_name: "test-ansible"
+    vm_username: "mysql"
+    resource_group_name: "exl"
     resource_group_region: "centralindia"
 
-    vnet_name: "test-ansible-vnet"
-    subnet_name: "test-ansible-subnet"
+    vnet_name: "exl-vnet"
+    subnet_name: "exl-subnet"
     public_ip_name: "{{ vm_name }}-public-ip"
     nsg_name: "{{ vm_name }}-nsg"
     nic_name: "{{ vm_name }}-nic"
 
-
   tasks:
 
+	- name: Get credential details
+	  awx.awx.credential:
+		name: Azure-secret
+		organization: Default
+		state: present
+	  register: azure_credentials
+
+	- name: Get VM credentials
+	  awx.awx.credential:
+		name: Azure_VM_Credentials
+		organization: Default
+		state: present
+	  register: vm_credentials
+	  
+	- name: Set credential variables using set_fact
+	  set_fact:
+		client_id: "{{ azure_credentials.client_id }}"
+		subscription_id: "{{ azure_credentials.subscription_id }}"
+		tenant: "{{ azure_credentials.tenant }}"
+		secret: "{{ azure_credentials.secret }}"
+        vm_password: "{{ vm_credentials.password }}"
+  
+  
     - name: Create a Resource Group
       azure.azcollection.azure_rm_resourcegroup:
         subscription_id: "{{ subscription_id }}"
