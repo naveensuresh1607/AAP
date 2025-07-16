@@ -27,6 +27,7 @@
     - name: Get credential details
       awx.awx.credential:
         name: Azure-secret
+        credential_type: Microsoft Azure Resource Manager
         organization: Default
         state: present
       register: azure_credentials
@@ -34,6 +35,7 @@
     - name: Get VM credentials
       awx.awx.credential:
         name: Azure_VM_Credentials
+        credential_type: Machine
         organization: Default
         state: present
       register: vm_credentials
