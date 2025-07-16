@@ -6,14 +6,14 @@
   gather_facts: false
 
   vars:
-    vm_name: "mysql" 
+    vm_name: "mysql"               
+    vm_username: "mysql"            
     vm_size: "Standard_B1s"
     vm_image:
       publisher: "RedHat"
       offer: "RHEL"
       sku: "9-LVM"
       version: "latest"
-    vm_username: "mysql" 
     resource_group_name: "exl"
     resource_group_region: "centralindia"
 
@@ -23,14 +23,14 @@
     nsg_name: "{{ vm_name }}-nsg"
     nic_name: "{{ vm_name }}-nic"
 
-    # Azure credentials injected by AWX
+    
     client_id: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
     secret: "{{ lookup('env', 'AZURE_SECRET') }}"
     subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
     tenant: "{{ lookup('env', 'AZURE_TENANT_ID') }}"
 
-    # VM admin password injected by AWX
-    vm_password: "{{ lookup('env', 'VM_PASSWORD') }}"
+    
+    vm_password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}" 
 
   tasks:
 
@@ -132,7 +132,3 @@
           - "{{ nic_name }}"
         ssh_password_enabled: true
       register: vm
-
-    - name: Print public IP of the created VM
-      debug:
-        msg: "VM Public IP is {{ public_ip.state.ip_address }}"
