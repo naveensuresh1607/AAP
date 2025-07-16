@@ -16,37 +16,21 @@
     vm_username: "mysql"
     resource_group_name: "exl"
     resource_group_region: "centralindia"
+
     vnet_name: "exl-vnet"
     subnet_name: "exl-subnet"
     public_ip_name: "{{ vm_name }}-public-ip"
     nsg_name: "{{ vm_name }}-nsg"
     nic_name: "{{ vm_name }}-nic"
 
+    # Pull sensitive credentials from AAP injected environment variables
+    client_id: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
+    secret: "{{ lookup('env', 'AZURE_SECRET') }}"
+    subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+    tenant: "{{ lookup('env', 'AZURE_TENANT_ID') }}"
+    vm_password: "{{ lookup('env', 'VM_PASSWORD') }}"  # For VM login
+
   tasks:
-
-    - name: Get credential details
-      awx.awx.credential:
-        name: Azure-secret
-        credential_type: Microsoft Azure Resource Manager
-        organization: Default
-        state: present
-      register: azure_credentials
-
-    - name: Get VM credentials
-      awx.awx.credential:
-        name: Azure_VM_Credentials
-        credential_type: Machine
-        organization: Default
-        state: present
-      register: vm_credentials
-
-    - name: Set credential variables using set_fact
-      set_fact:
-        client_id: "{{ azure_credentials.client_id }}"
-        subscription_id: "{{ azure_credentials.subscription_id }}"
-        tenant: "{{ azure_credentials.tenant }}"
-        secret: "{{ azure_credentials.secret }}"
-        vm_password: "{{ vm_credentials.password }}"
 
     - name: Create a Resource Group
       azure.azcollection.azure_rm_resourcegroup:
