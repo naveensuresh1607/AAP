@@ -4,7 +4,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
-
+  collections: 
+    - azure.azcollection
   vars:
     vm_name: "Test-Ansible"
     vm_size: "Standard_B1s"
