@@ -7,7 +7,8 @@
 
   vars:             
     vm_username: "exluser"            
-    vm_password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}"  
+    #vm_password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}" 
+    vm_password: "exl@123"
     vm_image:
       publisher: "RedHat"
       offer: "RHEL"
