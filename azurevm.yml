@@ -5,16 +5,16 @@
   connection: local
   gather_facts: false
 
-  vars:
-    vm_name: "mysql"               
-    vm_username: "mysql"           
-    vm_password: "P@ssw0rd123!"    
+  vars:    
     vm_size: "Standard_B1s"
     vm_image:
       publisher: "RedHat"
       offer: "RHEL"
       sku: "9-LVM"
       version: "latest"
+    vm_name: "mysql"               
+    vm_username: "mysql"           
+    vm_password: "P@ssw0rd123!"      
     resource_group_name: "exl"
     resource_group_region: "centralindia"
 
