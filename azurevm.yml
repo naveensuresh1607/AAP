@@ -23,14 +23,11 @@
     nsg_name: "{{ vm_name }}-nsg"
     nic_name: "{{ vm_name }}-nic"
 
-    
     client_id: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
     secret: "{{ lookup('env', 'AZURE_SECRET') }}"
     subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
     tenant: "{{ lookup('env', 'AZURE_TENANT_ID') }}"
-
-    
-    vm_password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}" 
+    vm_password: "P@ssw0rd123!"  
 
   tasks:
 
