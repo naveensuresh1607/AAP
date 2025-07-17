@@ -5,16 +5,16 @@
   connection: local
   gather_facts: false
 
-  vars:    
+  vars:
+    vm_name: "mysql"                
+    vm_username: "mysql"            
+    vm_password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}"  
     vm_size: "Standard_B1s"
     vm_image:
       publisher: "RedHat"
       offer: "RHEL"
       sku: "9-LVM"
       version: "latest"
-    vm_name: "mysql"               
-    vm_username: "mysql"           
-    vm_password: "P@ssw0rd123!"      
     resource_group_name: "exl"
     resource_group_region: "centralindia"
 
@@ -88,7 +88,7 @@
         name: "{{ vm_name }}"
         vm_size: "{{ vm_size }}"
         admin_username: "{{ vm_username }}"
-        admin_password: "{{ vm_password }}"
+        admin_password: "{{ vm_password }}" 
         image: "{{ vm_image }}"
         os_disk_name: "{{ vm_name }}-os-disk"
         os_disk_caching: ReadWrite
