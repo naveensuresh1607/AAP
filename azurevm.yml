@@ -5,11 +5,9 @@
   connection: local
   gather_facts: false
 
-  vars:
-    vm_name: "mysql"                
-    vm_username: "mysql"            
+  vars:             
+    vm_username: "exluser"            
     vm_password: "{{ lookup('env', 'ANSIBLE_NET_PASSWORD') }}"  
-    vm_size: "Standard_B1s"
     vm_image:
       publisher: "RedHat"
       offer: "RHEL"
