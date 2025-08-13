@@ -1,17 +1,21 @@
----
+--- # Delete Azure VM from RHAAP survey input
+
 - name: Delete Azure VM
   hosts: localhost
   connection: local
   gather_facts: false
 
   vars:
-    resource_group_name: "exl"
-    vm_name: "exl-vm"
+    resource_group_name: "exl"   # hardcode or add to survey if dynamic
 
   tasks:
-    - name: Delete the Virtual Machine
+    - name: Delete the Virtual Machine (keep other resources)
       azure.azcollection.azure_rm_virtualmachine:
         resource_group: "{{ resource_group_name }}"
         name: "{{ vm_name }}"
         state: absent
-        remove_on_absent: []   # Prevents deletion of NIC, disks, or public IP
+      register: delete_result
+
+    - name: Show deletion result
+      debug:
+        var: delete_result
