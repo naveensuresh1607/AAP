@@ -1,1 +1,36 @@
+--- # Resize Azure VM from RHAAP survey input
 
+- name: Resize Azure VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_group_name: "exl"  # Can be made dynamic in survey if needed
+
+  tasks:
+    - name: Stop the VM before resizing
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ vm_name }}"
+        allocated: false
+      register: stopped_vm
+
+    - name: Resize the VM
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ vm_name }}"
+        vm_size: "{{ target_vm_size }}"
+        allocated: false
+      register: resized_vm
+
+    - name: Start the VM after resizing
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ vm_name }}"
+        allocated: true
+      register: started_vm
+
+    - name: Show resize result
+      debug:
+        var: resized_vm
