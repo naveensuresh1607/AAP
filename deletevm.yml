@@ -1,0 +1,17 @@
+---
+- name: Delete Azure VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    resource_group_name: "exl"
+    vm_name: "exl-vm"
+
+  tasks:
+    - name: Delete the Virtual Machine
+      azure.azcollection.azure_rm_virtualmachine:
+        resource_group: "{{ resource_group_name }}"
+        name: "{{ vm_name }}"
+        state: absent
+        remove_on_absent: []   # Prevents deletion of NIC, disks, or public IP
